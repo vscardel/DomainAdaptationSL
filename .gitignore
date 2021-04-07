@@ -1,0 +1,8 @@
+corpora/
+embeddings/
+__pycache__
+pytorch_lstmcrf/data/
+pytorch_lstmcrf/docs/
+pytorch_lstmcrf/model_files/
+pytorch_lstmcrf/modelos/
+pytorch_lstmcrf/results/
