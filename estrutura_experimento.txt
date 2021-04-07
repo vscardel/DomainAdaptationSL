@@ -1,0 +1,115 @@
+Experimento
+
+	corpora
+
+		Onde se encontra as versoes originais dos datasets utilizados
+
+	embeddings
+
+		Onde se encontram os arquivos originais dos embeddings glove no formato gensim
+		Além disso, os arquivos de embeddings aproximados para cada dataset no formato gensim taḿbém se encontram lá.
+
+		Esses arquivos são utilizados como entrada para a função:
+
+		utilidades.util.write_on_gensim_format(path_corpora,path_embeddings,path_new_file,dim)
+
+			Essa função gera o arquivo com um '\n' como palavra QUE DEVE SER APAGADO MANUALMENTE
+
+			Outro problema são as linhas no começo do arquivo. O primeiro argumento, que é o número de linhas, DEVE SER AJUSTADO MANUALMENTE PRA FUNCIONAR.
+
+		e são o argumento "path_embeddings"
+
+		A função escreve no local apontado pelo argumento "path_new_file" apenas as palavras do dataset apontado por "path_corpora".
+
+		Esse novo arquivo é passado para a função:
+
+		utilidades.util.divergencia_KL(path_gensim_source,path_gensim_target)
+
+		onde path_gensim_source e path_gensim_target são os arquivos escritos por por write_on_gensim_format()
+
+		Nesse experimento esses arquivos encontram-se na pasta pytorch/data/corpora, como será discutido logo mais.
+
+
+	pytorch_lstmcrf
+
+		data
+
+			Onde se encontram os principais arquivos associados a cada dataset. Isso inclui train.txt, dev.txt e test.txt. Sem train, test e dev não é possível rodar o programa trainer.py e ner_predictor_victor.py. O formato de cada um desses arquivos é:
+
+			Palavra tag '\n'
+
+			e tag é "O", "B-"" ou "I-""
+
+			A presença de '-' nas tags B e O imprescindível
+
+
+			Os outros arquivos são:
+
+			corpora/full_data.txt
+
+				Concatenação de dev, test e train. É necessário em diversas funções do experimento. 
+
+			corpora/full_data_com_classes.txt
+
+				nesse arquivo, o formato da tag inclui a classe, ou seja:
+
+				B-classe
+				I-classe
+				O
+
+				necessário para gerar o arquivo "test_com_classes.txt"
+
+				"test_com_classes.txt" é a partição de "full_data_com_classes.txt" cujas instâncias pertencem ao arquivo "test.txt"
+
+				"test_com_classes.txt" e "results*.txt" são utilizados como entrada para o programa "calcula_metricas_por_classe.py".
+
+				results*.txt tem o formato:
+
+				palavra tag
+
+				as tags de results* originalmente incluem as tags "E-" e "S-". ESSAS DEVEM SER MODIFICADAS MANUALMENTE PARA SEREM "I-" E "B-" RESPECTIVAMENTE. basta dar um ctrl+h e substituir tudo
+
+				results* é copiado e colado de pytorch_lstmcrf/results/bla.txt para data/corpora
+
+				bla.txt é populado quando se roda ner_predictor_victor.py com os parametros necesśarios
+
+
+	REFATORAR
+		FAZER FUNCIONAR DIFERENÇA DE CENTROIDE
+	calcula_divergencia.py
+
+		É basicamente a chamada de função de calculo das divergências
+
+
+	OBSOLETO
+	config.py
+		possuia os caminhos dos arquivos, mas está obsoleto
+
+	REFATORAR URGENTE	
+	experimento_aproximação.py
+		gera os arquvos de treino e teste aproximados para cada dataset com um parametro d. Todos esses arquivos são armazenados em data e utilizados como argumento para trainer.py e ner_predictor_victor.py para gerar os modelos salvos
+
+	utilidades.py
+		Onde se encontram uma cacetada de funções úteis
+
+em ner_predictor:
+
+	Obtendo as palavras do batch
+		batch eh um iteravel onda cada membro eh uma instancia da classe Features
+		Features possui um atributo chamado words
+		words[0] sao on indicies das palavras no dicionario word2_idx
+		words_batch eh a lista de palavras do batch, obtida através de batch.words[0]
+
+	Obtendo as representações contextuais para as palavras do batch
+		no arquivo src.model.neuralcrf.py, modificar decode para retornar
+		a variavel contextual_representations. Retornar entao contextual_representations
+
+		em src.model.module.bilstm_encoder.py:
+			lstm_out_data contem os embeddings contextuais
+			criar a lista contextual_representations
+			append cada data in lstm_out_data em contextual_representations
+			retornar contextual_representations
+			chamar write_context_emb(file_path,context_representations,words) para
+			escrever no arquivo
+
+para carregar os embeddings contextuais no experimento de aproximacao usar o formato gensim

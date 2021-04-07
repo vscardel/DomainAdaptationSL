@@ -1,0 +1,125 @@
+1)Importar o harem e checar o formato do recebimento dos dados. checar se todas as entidades estão sendo coletadas.
+	ok
+
+
+2) Instalando e usando um modelo pré-treinado LSTM-CRF que usa BERT (atingiu estado da arte em REN)
+
+	2.0) Instale o Conda (para criar o ambiente virtual)
+	
+		bash Miniconda3-latest-Linux-x86_64.sh
+
+	2.1) clone o repositório:
+	 
+		git clone https://github.com/allanj/pytorch_lstmcrf 
+		
+	     e crie o ambiente virtual usando:
+	     
+	     	conda create -n pt_lstmcrf python=3.6
+	     	
+		ok
+
+	2.2) conda activate pt_lstmcrf -> para ativar o ambiente virtual
+
+		Rode os comandos:
+			conda install pytorch torchvision cudatoolkit=10.0 -c pytorch -n pt_lstmcrf
+			pip install tqdm
+			pip install termcolor
+			pip install overrides
+			pip install allennlp ## required when we need to get the ELMo vectors
+			pip install transformers
+
+	2.3) Na pasta "data", crie a pasta do dataset que deseja. No caso, criarei uma do harem chamda harem_seg (sementacao apenas).
+		ok
+
+	2.4) Criar um script para criar os arquivos no formato desejado. São 3: dev.txt, test.txt e train.txt.
+		Todos eles ficam dentro da pasta harem criada dentro de "data". 
+		O formato é uma palavra por linha, com a tag separada por um espaço.
+		IMPORTANTE: sentenças são separadas por uma quebra de linha
+		ok
+
+	2.2) Split de 80/20 para treino e teste e 80/20 para treino e validação.
+		ok
+
+	2.6)Adicionr o modelo de linguagem bert para o português no dicionário em src/config/transformers_util.py
+		Para isso, a seguinte linha foi adicionada no dicionário:   
+		'neuralmind/bert-base-portuguese-cased': {"model": BertModel, "tokenizer": BertTokenizer},
+
+	2.7) Execute o comando: 
+	python3 transformers_trainer.py --device=cpu --dataset=harem_seg --model_folder=saved_models --embedder_type=neuralmind/bert-base-portuguese-cased dentro do diretório clonado.
+
+		--device = cpu (pois não tem gpu no meu pc)
+		--dataset=harem_seg (nome do dataset que eu criei)
+		--embedder_type = neuralmind/bert-base-portuguese-cased (o embedding no huggingface)
+
+		TÁ DANDO RUIM
+
+
+3) Usando glove embeddings ao invés de usar BERT
+	3.1) Bote o arquivo do embeddings na pasta data
+	3.2) Rode da mesma maneira, mas com trainer.pyao invés de transformes_trainer.py
+	3.3) CUIDADO: não tem no tutorial, mas o nome do arquivo e a dimensão dos embeddings devem ser passadas como argumento no terminal
+	3.4) CUIDADO: A primeira linha do arquivo dos vetores glove do nilc possuem o número de vetores e a dimensão. Isso fode com o codigo que carrega os embeddings. Retire essa linha.
+	3.5) Retirada a linha 18575 (caractere bizarro no vocabulário)
+	3.6) Linha 349488 com um dígito a mais. Consertado.
+	3.7) Linha 428416 com um dígito a mais. Consertado.
+	3.8) Linha 464913 com um dígito a mais. Consertado.
+	3.9) Linha 488278 com um dígito a mais. Consertado.
+	3.10) Mais problemas do tipo acima aconteceram e foram corrigidos.
+	3.11) Na linha 748946 os caracteres chineses estavam separados
+	3.12: O comando final ficou desta forma:
+
+		python3 trainer.py --device=cpu --dataset=harem_seg --model_folder=saved_models --embedding_file=data/glove_s50.txt --embedding_dim=50
+	3.13) A maioria das palabras está sendo incializada com seu respectivo vetor (apenas 365 palavras inicializadas aleatoriamente)
+
+4) Debugando o arquivo trainer.py
+	4.1) Tudo dando 0%. Quero ver o que diabos esse modelo tá prevendo
+	4.2) O formato do dataset tem que ser B-, I- e O. Senão a função de conversão das tags em BIOES da pau.
+	4.3) FUNCIONOU DESGRACA
+	4.4) precisao:83.35%
+		 recall: 79.54%
+		 f1: 81.40%
+
+5) Treinando o modelo no Geocorpus
+	Mesmo procedimento de 3
+	1) Uma feature vinha vazia. No arquivo data/ner_dataset.py eu modifiquei a funçao read_txt para ignorar palavras vazias.
+	Essa eh a única maneira de incluir instancias defeituosas num arquivo gigante no contexto deste codigo
+	2) COM ISSO DEU CERTO VAI TIME!!!!
+
+6) Treinando o modelo no cojur
+	6.1) Da 100% f1. Marlo falou que o dataset eh fácil msm
+
+7) Aplicando o modelo treinado no harem nos outros datasets
+	
+	7,1) Fiz o meu próprio ner_predictor, ja que o ner_predictor do cara nao funcionava.
+		 Por padrão ele usa o modelo treinado no harem para classificar.
+	7.2) Uso:
+
+			python3 ner_predictor_victor.py --device=cpu --embedding_file=data/glove_s50.txt --embedding_dim=50 --my_test_file=my_test_dile
+
+
+8)Para aproximar os datasets basta rodar o script "experimento aproximacao.py". Para determinar a dimensão dos vetores do arquivo gerado é preciso mudar o parametro "d" dentro do código fonte.
+
+
+
+10) Cálculo da distância das centroides após aproximacao
+	1) Carrega os embeddings usando o arquivo source_to_target
+	2) carrega os embeddings do harem
+	3) Carrega os embeddings usando o arquivo pc_target
+	4) Carrega os embeddings do target
+	5) Calcula a distancia entre as centroides
+	6) Resultados no drive
+
+11) Treinando os modelos nos embeddings aproximados
+	1) Treino o modelo no dataset do harem com os embeddigns aproximados
+	2) Teste no dataset alvo com os pc embeddings
+
+
+12) Procedimento de obtenção da performance por classes e geral dos datasets:
+	obter o arquivo de resultados BIO
+		roda ner predictor em cima de data/dataset/test.txt
+		o resultado vai pro arquivo bla.txt no diretorio results
+		nesse arquivo, substituir todas as tags S- por B- e todas as tags E- por I-
+	obter o arquivo de teste BIO-CLASSES para servir como label
+	passar ambos os arquivos para o programa "calcula_metricas_por_classe.py"
+	Para os datasets adaptados, fazer o procedimento para o modelo do harem aplicado com aproximação e sem aproximação
+
