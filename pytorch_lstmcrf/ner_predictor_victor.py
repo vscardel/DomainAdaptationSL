@@ -117,7 +117,7 @@ insts = test_dataloader.dataset.insts
 batch_id = 0
 dev = "cpu"
 
-#arquivo passado como argumento para eval para escrever os resultados
+# arquivo passado como argumento para eval para escrever os resultados
 f = open(opt.results_path,'a')
 
 with torch.no_grad():
@@ -142,5 +142,3 @@ total_predict = sum(list(total_predict_dict.values()))
 total_entity = sum(list(total_entity_dict.values()))
 
 precision, recall, fscore = get_metric(total_p, total_entity, total_predict)
-
-print(precision,recall,fscore)

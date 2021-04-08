@@ -157,17 +157,20 @@ class Corpora:
 		rest_classe = slp_com_classes[size_of_train+1:]
 		dev = rest[:len(rest)//2]
 		test = rest[len(rest)//2:]
+		dev_classe = rest_classe[:len(rest)//2]
 		test_classe = rest_classe[len(rest)//2:]
 
 		f_train = open(path_corpora + '/train.txt','w')
 		f_dev = open(path_corpora + '/dev.txt','w')
 		f_test = open(path_corpora + '/test.txt','w')
 		f_test_classe = open(path_corpora + '/test_com_classes.txt','w')
+		f_dev_classe = open(path_corpora + '/dev_com_classes.txt','w')
 
 		self.aux_write_partition_corpora(f_train,train)
 		self.aux_write_partition_corpora(f_dev,dev)
 		self.aux_write_partition_corpora(f_test,test)
 		self.aux_write_partition_corpora(f_test_classe,test_classe)
+		self.aux_write_partition_corpora(f_dev_classe,dev_classe)
 	
 
 	#recebe corpus no formato BIO e retorna

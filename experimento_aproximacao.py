@@ -80,8 +80,6 @@ geocorpus_embeddings = utilidades.Corpora().load_dataset_embeddings(all_embeddin
 lener_embeddings = utilidades.Corpora().load_dataset_embeddings(all_embeddings,Dados.pytorch['full_data_lener'],dim)
 cojur_embeddings = utilidades.Corpora().load_dataset_embeddings(all_embeddings,Dados.pytorch['full_data_cojur'],dim)
 
-harem_contextual_embeddings = 
-
 
 print('###################')
 print('construindo matrizes de observacao')
