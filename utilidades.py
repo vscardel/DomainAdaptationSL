@@ -105,16 +105,13 @@ class Corpora:
 			f.write('\n')
 
 	#auxiliar para escrever os arquivos da funcao partition corpra
-	def aux_partition_corpora(self,f_obj,list_of_p):
+	def aux_write_partition_corpora(self,f_obj,list_of_p):
 		for p in list_of_p:
 			for line in p:
 				f_obj.write(line)
 			f_obj.write('\n')
 
-	#recebe um arquivo full_data.txt e o tamanho do conj de treino e cria
-	#os arquivos train, dev e text. dev e test possuem o mesmo tamanho
-	def partition_corpora(self,path_full_data,path_corpora,size_of_train):
-		f = open(path_full_data,'r')
+	def aux_read_partition_corpora(self,f):
 		p = []
 		list_p = []
 		for line in f.readlines():
@@ -123,28 +120,54 @@ class Corpora:
 				p = []
 			else:
 				p.append(line)
+		return list_p
+
+	def aux_shuffle_partition_corpora(self,l,l_com_classes):
 		#embaralha os indices para que a distribuicao dos dados
 		#seja igualitaria
-		arr = np.arange(len(list_p))
+		arr = np.arange(len(l))
 		np.random.shuffle(arr)
 		shuffled_list_p = []
+		shuffled_list_p_com_classes = []
 		for idx in arr:
-			shuffled_list_p.append(list_p[idx])
+			shuffled_list_p.append(l[idx])
+			shuffled_list_p_com_classes.append(l_com_classes[idx])
+		return shuffled_list_p,shuffled_list_p_com_classes
 
-		size_of_train = int(len(shuffled_list_p)*0.8)
-		train = shuffled_list_p[:size_of_train+1]
-		rest = shuffled_list_p[size_of_train+1:]
+	#recebe um arquivo full_data.txt e o tamanho do conj de treino e cria
+	#os arquivos train, dev e text. dev e test possuem o mesmo tamanho
+	def partition_corpora(self,path_full_data_com_classes,
+							path_full_data,
+							path_corpora,
+							size_of_train):
+
+
+		f1 = open(path_full_data,'r')
+		f2 = open(path_full_data_com_classes,'r')
+
+		list_p = self.aux_read_partition_corpora(f1)
+		list_p_com_classes = self.aux_read_partition_corpora(f2)
+
+		#shuffle in place
+		slp,slp_com_classes= self.aux_shuffle_partition_corpora(list_p,list_p_com_classes)
+
+		size_of_train = int(len(slp)*0.8)
+		train = slp[:size_of_train+1]
+		rest = slp[size_of_train+1:]
+		rest_classe = slp_com_classes[size_of_train+1:]
 		dev = rest[:len(rest)//2]
 		test = rest[len(rest)//2:]
-
+		test_classe = rest_classe[len(rest)//2:]
 
 		f_train = open(path_corpora + '/train.txt','w')
 		f_dev = open(path_corpora + '/dev.txt','w')
 		f_test = open(path_corpora + '/test.txt','w')
+		f_test_classe = open(path_corpora + '/test_com_classes.txt','w')
 
-		self.aux_partition_corpora(f_train,train)
-		self.aux_partition_corpora(f_dev,dev)
-		self.aux_partition_corpora(f_test,test)
+		self.aux_write_partition_corpora(f_train,train)
+		self.aux_write_partition_corpora(f_dev,dev)
+		self.aux_write_partition_corpora(f_test,test)
+		self.aux_write_partition_corpora(f_test_classe,test_classe)
 	
 
 	#recebe corpus no formato BIO e retorna
