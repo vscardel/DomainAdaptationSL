@@ -71,8 +71,12 @@ def parse_arguments(parser):
 parser = argparse.ArgumentParser(description="LSTM CRF implementation")
 opt = parse_arguments(parser)
 
+dataset = opt.model_path.split('/')[2].split('_')[0]
+print(dataset)
+
 #apenas para criar as labels
-train_dataset = NERDataset('data/harem/train.txt',True)
+
+train_dataset = NERDataset('data/'+str(dataset)+'/train.txt',True)
 idx2labels = train_dataset.idx2labels
 
 test_file = opt.my_test_file
@@ -139,4 +143,4 @@ total_entity = sum(list(total_entity_dict.values()))
 
 precision, recall, fscore = get_metric(total_p, total_entity, total_predict)
 
-# print(precision,recall,fscore)
+print(precision,recall,fscore)
