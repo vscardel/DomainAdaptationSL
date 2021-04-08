@@ -53,13 +53,15 @@ def parse_arguments(parser):
     #meus hiperparametros
     parser.add_argument('--my_test_file', type=str, default='',
                         help="indicate file to apply the model")
+    parser.add_argument('--model_path', type=str, default='',
+                        help="indicate model path")
+    parser.add_argument('--results_path', type=str, default='',
+                        help="indicate results.txt path")
    
     args = parser.parse_args()
     for k in args.__dict__:
         print(k + ": " + str(args.__dict__[k]))
     return args
-
-
 
 
 #cria uma instância de NERDataset do arquivo de treino.
@@ -70,7 +72,7 @@ parser = argparse.ArgumentParser(description="LSTM CRF implementation")
 opt = parse_arguments(parser)
 
 #apenas para criar as labels
-train_dataset = NERDataset('data/harem_seg/train.txt',True)
+train_dataset = NERDataset('data/harem/train.txt',True)
 idx2labels = train_dataset.idx2labels
 
 test_file = opt.my_test_file
@@ -96,7 +98,8 @@ conf = Config(opt)
 conf.build_emb_table(word2idx=word2idx)
 
 #carregando modelo
-folder_name = "modelos_treinados_100/harem_model"
+
+folder_name = opt.model_path
 f = open(folder_name + "/config.conf", 'rb')
 model = NNCRF(pickle.load(f))
 model.load_state_dict(torch.load(folder_name + "/lstm_crf.m", map_location = "cpu"))
@@ -111,7 +114,7 @@ batch_id = 0
 dev = "cpu"
 
 #arquivo passado como argumento para eval para escrever os resultados
-f = open('/home/victor/TCC/experimentos/pytorch_lstmcrf/results/bla.txt','w')
+f = open(opt.results_path,'a')
 
 with torch.no_grad():
 
@@ -136,4 +139,4 @@ total_entity = sum(list(total_entity_dict.values()))
 
 precision, recall, fscore = get_metric(total_p, total_entity, total_predict)
 
-print(precision,recall,fscore)
+# print(precision,recall,fscore)

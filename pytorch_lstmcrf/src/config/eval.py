@@ -4,6 +4,15 @@ import torch
 from collections import defaultdict, Counter
 from src.data import Instance
 
+def write_results(f,words,tags):
+	for i in range(len(words)):
+		if tags[i] == 'E-':
+			tags[i] = 'I-'
+		elif tags[i] == 'S-':
+			tags[i] = 'B-'
+		f.write(words[i] + ' ' + tags[i] + '\n')
+
+
 class Span:
     """
     A class of `Span` where we use it during evaluation.
@@ -28,6 +37,7 @@ class Span:
 
 
 def evaluate_batch_insts(batch_insts: List[Instance],
+						 f_obj,
                          batch_pred_ids: torch.Tensor,
                          batch_gold_ids: torch.Tensor,
                          word_seq_lens: torch.Tensor,
@@ -53,6 +63,10 @@ def evaluate_batch_insts(batch_insts: List[Instance],
         prediction = batch_pred_ids[idx][:length].tolist()
         prediction = prediction[::-1]
         output = [idx2label[l] for l in output]
+        # print(batch_insts[0].words)
+        # print(output)
+        write_results(f_obj,batch_insts[0].words,output)
+        f_obj.write('\n')
         prediction =[idx2label[l] for l in prediction]
         batch_insts[idx].prediction = prediction
         #convert to span

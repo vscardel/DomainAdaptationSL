@@ -137,6 +137,7 @@ class Corpora:
 		dev = rest[:len(rest)//2]
 		test = rest[len(rest)//2:]
 
+
 		f_train = open(path_corpora + '/train.txt','w')
 		f_dev = open(path_corpora + '/dev.txt','w')
 		f_test = open(path_corpora + '/test.txt','w')
