@@ -64,10 +64,8 @@ def parse_arguments(parser):
     #meus hiperparametros
     parser.add_argument('--my_test_file', type=str, default='',
                         help="indicate file to apply the model")
-    parser.add_argument('--apply_to_another', type=int, default=0,
-                        help="tells if it is to apply the model to another file")
-    parser.add_argument('--my_test_num', type=int, default=-1,
-                        help="tells if it is to apply the model to another file")
+    parser.add_argument('--all_data', type=str, default='',
+                        help="caminho de all_data.txt")
 
 
     args = parser.parse_args()
@@ -208,7 +206,12 @@ def main():
                                          label2idx=train_dataset.label2idx, is_train=False)
     test_dataset = NERDataset(conf.test_file, number=conf.test_num,
                                           label2idx=train_dataset.label2idx, is_train=False)
-    word2idx, _, char2idx, _ = build_word_idx(train_dataset.insts, dev_dataset.insts, test_dataset.insts)
+
+    #victor
+    all_data_dataset = NERDataset(opt.all_data,True)
+    
+    word2idx, _, char2idx, _ = build_word_idx(all_data_dataset.insts,[],[])
+
     conf.word2idx = word2idx
     conf.char2idx = char2idx
 

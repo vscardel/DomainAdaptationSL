@@ -38,7 +38,6 @@ class Span:
 
 
 def evaluate_batch_insts(batch_insts: List[Instance],
-                         f_obj,
                          batch_pred_ids: torch.Tensor,
                          batch_gold_ids: torch.Tensor,
                          word_seq_lens: torch.Tensor,
@@ -65,8 +64,8 @@ def evaluate_batch_insts(batch_insts: List[Instance],
         prediction = prediction[::-1]
         output = [idx2label[l] for l in output]
        
-        write_results(f_obj,batch_insts[0].words,output)
-        f_obj.write('\n')
+        # write_results(f_obj,batch_insts[0].words,output)
+        # f_obj.write('\n')
 
         prediction =[idx2label[l] for l in prediction]
         batch_insts[idx].prediction = prediction

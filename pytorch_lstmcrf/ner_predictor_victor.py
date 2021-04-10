@@ -57,6 +57,8 @@ def parse_arguments(parser):
                         help="indicate model path")
     parser.add_argument('--results_path', type=str, default='',
                         help="indicate results.txt path")
+    parser.add_argument('--all_data', type=str, default='',
+                        help="caminho de all_data.txt")
    
     args = parser.parse_args()
     for k in args.__dict__:
@@ -76,14 +78,15 @@ print(dataset)
 
 #apenas para criar as labels
 
-train_dataset = NERDataset('data/'+str(dataset)+'/train.txt',True)
+train_dataset = NERDataset('data/' +str(dataset) + '/train.txt',True)
 idx2labels = train_dataset.idx2labels
 
 test_file = opt.my_test_file
 test_dataset = NERDataset(test_file,False,train_dataset.label2idx)
 
-#passa a lista vazia para dev, ja que nao sera usado
-word2idx, _, char2idx, _ = build_word_idx(train_dataset.insts,[],test_dataset.insts)
+all_data_dataset = NERDataset(opt.all_data,True)
+
+word2idx, _, char2idx, _ = build_word_idx(all_data_dataset.insts,[],[])
 
 num_workers = 8
 label_size = len(train_dataset.label2idx)
@@ -120,25 +123,36 @@ dev = "cpu"
 # arquivo passado como argumento para eval para escrever os resultados
 f = open(opt.results_path,'a')
 
+cont = 0
 with torch.no_grad():
 
 	for iter, batch in tqdm(enumerate(test_dataloader, 1), desc="--evaluating batch", total=len(test_dataloader)):
-		
+
+		indexes = [idx.item() for idx in batch.words[0]]
+		words_batch = []
+		for idx in indexes:
+			words_batch.append(list(word2idx.keys())[list(word2idx.values()).index(idx)])
+
 		one_batch_insts = insts[batch_id * batch_size:(batch_id + 1) * batch_size]
 
 		batch_id += 1
 
+		
 		batch_max_scores, batch_max_ids = model.decode(words = batch.words.to(dev), word_seq_lens = batch.word_seq_len.to(dev),
-			context_emb=batch.context_emb.to(dev) if batch.context_emb is not None else None,
-			chars = batch.chars.to(dev), char_seq_lens = batch.char_seq_lens.to(dev))
-
-		batch_p , batch_predict, batch_total = evaluate_batch_insts(one_batch_insts,f,batch_max_ids, batch.labels, batch.word_seq_len, idx2labels)
+		context_emb=batch.context_emb.to(dev) if batch.context_emb is not None else None,
+		chars = batch.chars.to(dev), char_seq_lens = batch.char_seq_lens.to(dev))
+		
+		batch_p , batch_predict, batch_total = evaluate_batch_insts(one_batch_insts,batch_max_ids, batch.labels, batch.word_seq_len, idx2labels)
 		p_dict += batch_p
 		total_predict_dict += batch_predict
 		total_entity_dict += batch_total
+
+
 	
 total_p = sum(list(p_dict.values()))
 total_predict = sum(list(total_predict_dict.values()))
 total_entity = sum(list(total_entity_dict.values()))
 
 precision, recall, fscore = get_metric(total_p, total_entity, total_predict)
+
+print(precision,recall,fscore)
