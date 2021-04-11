@@ -130,7 +130,11 @@ for cont,classe in enumerate(mapp):
 
 		precisao = MC[0][0]/(MC[0][0]+MC[0][1])
 		recall = MC[1][1]/(MC[1][1]+MC[1][0])
-		f_measure = (2*precisao*recall)/(precisao+recall)
+		
+		if (precisao + recall) != 0:
+			f_measure = (2*precisao*recall)/(precisao+recall)
+		else:
+			f_measure = 0
 
 		precisao_media += precisao
 		recall_medio += recall
