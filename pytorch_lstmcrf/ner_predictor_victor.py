@@ -65,6 +65,25 @@ def parse_arguments(parser):
         print(k + ": " + str(args.__dict__[k]))
     return args
 
+def write_contextual_embeddings(f,words,context_rep):
+
+	written_words = []
+	
+	for i in range(len(words)):
+
+		if words[i] not in written_words:
+
+			f.write(words[i] + ' ')
+
+			for j,num in enumerate(context_rep[i]):
+				num_to_write = num.item()
+				if j == len(context_rep[i])-1:
+					f.write(str(num_to_write) + '\n')
+				else:
+					f.write(str(num_to_write) + ' ')
+
+			written_words.append(words[i])
+
 
 #cria uma instância de NERDataset do arquivo de treino.
 #essa eh a instancia q tem label2idx
@@ -74,7 +93,7 @@ parser = argparse.ArgumentParser(description="LSTM CRF implementation")
 opt = parse_arguments(parser)
 
 dataset = opt.model_path.split('/')[2].split('_')[0]
-print(dataset)
+# print(dataset)
 
 #apenas para criar as labels
 
@@ -122,6 +141,7 @@ dev = "cpu"
 
 # arquivo passado como argumento para eval para escrever os resultados
 f = open(opt.results_path,'a')
+f2 = open('data/embeddings_contextuais/lener_embeddings_100d.txt','a')
 
 cont = 0
 with torch.no_grad():
@@ -138,7 +158,7 @@ with torch.no_grad():
 		batch_id += 1
 
 		
-		batch_max_scores, batch_max_ids = model.decode(words = batch.words.to(dev), word_seq_lens = batch.word_seq_len.to(dev),
+		batch_max_scores, batch_max_ids,context_rep = model.decode(words = batch.words.to(dev), word_seq_lens = batch.word_seq_len.to(dev),
 		context_emb=batch.context_emb.to(dev) if batch.context_emb is not None else None,
 		chars = batch.chars.to(dev), char_seq_lens = batch.char_seq_lens.to(dev))
 		
@@ -146,6 +166,9 @@ with torch.no_grad():
 		p_dict += batch_p
 		total_predict_dict += batch_predict
 		total_entity_dict += batch_total
+
+		write_contextual_embeddings(f2,words_batch,context_rep)
+
 
 
 	

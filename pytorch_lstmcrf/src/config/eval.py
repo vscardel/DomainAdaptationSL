@@ -64,10 +64,11 @@ def evaluate_batch_insts(batch_insts: List[Instance],
         prediction = prediction[::-1]
         output = [idx2label[l] for l in output]
        
-        # write_results(f_obj,batch_insts[0].words,output)
+        prediction =[idx2label[l] for l in prediction]
+
+        # write_results(f_obj,batch_insts[0].words,prediction)
         # f_obj.write('\n')
 
-        prediction =[idx2label[l] for l in prediction]
         batch_insts[idx].prediction = prediction
         #convert to span
         output_spans = set()
