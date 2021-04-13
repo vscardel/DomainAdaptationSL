@@ -65,15 +65,13 @@ def parse_arguments(parser):
         print(k + ": " + str(args.__dict__[k]))
     return args
 
-def write_contextual_embeddings(f,words,context_rep):
+def write_contextual_embeddings(f,words,context_rep,written_words):
 
-	written_words = []
-	
 	for i in range(len(words)):
 
-		if words[i] not in written_words:
+		if words[i].lower() not in written_words:
 
-			f.write(words[i] + ' ')
+			f.write(words[i].lower() + ' ')
 
 			for j,num in enumerate(context_rep[i]):
 				num_to_write = num.item()
@@ -82,7 +80,7 @@ def write_contextual_embeddings(f,words,context_rep):
 				else:
 					f.write(str(num_to_write) + ' ')
 
-			written_words.append(words[i])
+			written_words.append(words[i].lower())
 
 
 #cria uma instância de NERDataset do arquivo de treino.
@@ -141,7 +139,9 @@ dev = "cpu"
 
 # arquivo passado como argumento para eval para escrever os resultados
 f = open(opt.results_path,'a')
-f2 = open('data/embeddings_contextuais/lener_embeddings_100d.txt','a')
+f2 = open('data/embeddings_contextuais/cojur_embeddings_100d.txt','a')
+written_words = []
+
 
 cont = 0
 with torch.no_grad():
@@ -157,7 +157,6 @@ with torch.no_grad():
 
 		batch_id += 1
 
-		
 		batch_max_scores, batch_max_ids,context_rep = model.decode(words = batch.words.to(dev), word_seq_lens = batch.word_seq_len.to(dev),
 		context_emb=batch.context_emb.to(dev) if batch.context_emb is not None else None,
 		chars = batch.chars.to(dev), char_seq_lens = batch.char_seq_lens.to(dev))
@@ -167,11 +166,9 @@ with torch.no_grad():
 		total_predict_dict += batch_predict
 		total_entity_dict += batch_total
 
-		write_contextual_embeddings(f2,words_batch,context_rep)
+		write_contextual_embeddings(f2,words_batch,context_rep,written_words)
 
 
-
-	
 total_p = sum(list(p_dict.values()))
 total_predict = sum(list(total_predict_dict.values()))
 total_entity = sum(list(total_entity_dict.values()))

@@ -79,8 +79,9 @@ def train_model(config: Config, epoch: int, train_loader: DataLoader, dev_loader
     train_num = len(train_loader.dataset)
     print("number of instances: %d" % (train_num))
 
-
     model = NNCRF(config)
+   
+
     optimizer = get_optimizer(config, model)
 
     dev = config.device

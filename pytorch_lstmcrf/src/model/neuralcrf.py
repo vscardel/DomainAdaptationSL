@@ -49,6 +49,7 @@ class NNCRF(nn.Module):
         :param labels: (batch_size x max_seq_len)
         :return: the total negative log-likelihood loss
         """
+
         word_rep = self.embedder(words, word_seq_lens, context_emb, chars, char_seq_lens)
         lstm_scores = self.encoder(word_rep, word_seq_lens.cpu())
         batch_size = words.size(0)
@@ -70,9 +71,13 @@ class NNCRF(nn.Module):
         """
         Decode the batch input
         :param batchInput:
-        :return:
+        :return:m
         """
+        
         word_rep = self.embedder(words, word_seq_lens, context_emb, chars, char_seq_lens)
         features,context_rep = self.encoder(word_rep, word_seq_lens.cpu())
+        # features = self.encoder(word_rep, word_seq_lens.cpu())
         bestScores, decodeIdx = self.inferencer.decode(features, word_seq_lens)
         return bestScores, decodeIdx,context_rep
+        # return bestScores, decodeIdx
+

@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 
@@ -51,5 +50,4 @@ class BiLSTMEncoder(nn.Module):
         outputs = self.hidden2tag(feature_out)
 
         return outputs[recover_idx],batch_rep
-
-
+        # return outputs[recover_idx]
