@@ -66,20 +66,24 @@ def write_embeddings_to_file(path,corpus_dict,all_dict,emb_to_write,d_eig_corpus
 	dict_to_write = {}
 
 	cont = 0
-	for palavra in corpus_dict:
-		emb = emb_to_write[:,cont]
-		cont = cont + 1
-		dict_to_write[palavra] = emb
+	dim = len(emb_to_write[:,0])
 
 	for palavra in all_dict:
 		if palavra not in corpus_dict:
 			#reduce dimensionality of the vector
 			emb = np.matmul(all_dict[palavra],d_eig_corpus)
 			dict_to_write[palavra] = emb
+		else:
+			emb = emb_to_write[:,cont]
+			cont = cont + 1
+			dict_to_write[palavra] = emb
+
+	#numero de linhas e dimensao dos embeddings
+	f.write(str(len(dict_to_write)-1) + ' ' + str(dim) + '\n')
 
 	for i,palavra in enumerate(dict_to_write):
 
-		if palavra != '\n' or palavra != ' ':
+		if palavra != '\n' and palavra != ' ':
 			f.write(palavra + ' ')
 			emb = dict_to_write[palavra]
 			for i,num in enumerate(emb):
@@ -93,7 +97,6 @@ def main():
 
 	parser = argparse.ArgumentParser(description="")
 	opt = parse_arguments(parser)
-	print(opt)
 
 	dim = 100
 	
@@ -191,7 +194,7 @@ def main():
 
 		write_embeddings_to_file(opt.data_path+
 			'/embeddings_aproximados/contextuais/'+str(d)+'/'+
-			'harem_to_geo_'+str(d)+
+			'harem_to_geocorpus_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_geo,d_eig_harem)
 
 		print('file harem_to_lener')
@@ -234,7 +237,7 @@ def main():
 
 		write_embeddings_to_file(opt.data_path+
 			'/embeddings_aproximados/nao_contextuais/'+str(d)+'/'
-			'harem_to_geo_'+str(d)+
+			'harem_to_geocorpus_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_geo,d_eig_harem)
 
 		print('file harem_to_lener')

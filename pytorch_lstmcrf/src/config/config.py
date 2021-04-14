@@ -90,7 +90,10 @@ class Config:
         embedding_dim = -1
         embedding = dict()
         with open(self.embedding_file, 'r', encoding='utf-8') as file:
-            for line in tqdm(file.readlines()):
+            for i,line in enumerate(tqdm(file.readlines())):
+                #ignore first line
+                if i == 0:
+                    continue
                 line = line.strip()
                 if len(line) == 0:
                     continue

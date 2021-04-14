@@ -1,42 +1,122 @@
 import utilidades
 from gensim.models import KeyedVectors
+import argparse
+
+def parse_arguments(parser):
+	parser.add_argument('--data_path', type=str, default="",
+				help="define o caminho da pasta data")
+	parser.add_argument('--contextual', type=str, default="",
+				help="para saber se eh aproximacao dos embeddings contextuais")
+	parser.add_argument('--fonte', type=str, default="",
+				help="dataset fonte")
+	parser.add_argument('--alvo', type=str, default="",
+				help="dataset alvo")
+	parser.add_argument('--originais', type=str, default="",
+				help="para saber se é a aproximação de embedings originais")
+	parser.add_argument('--dim_aprox', type=str, default="",
+				help="se aproximado, qual a dimensao")
+
+
+
+	args = parser.parse_args()
+	for k in args.__dict__:
+		print(k + ": " + str(args.__dict__[k]))
+	return args
+
+#retorna keyedVectors para um corpora especifico
+def create_keywords_for_corpus(all_key,path_full_data_corpus):
+	palavras_corpus = corpora.conta_palavras(path_full_data_corpus)
+	model = KeyedVectors(all_key.vector_size)
+	for palavra in palavras_corpus:
+		if palavra in all_key:
+			model.add_vector(palavra,all_key[palavra])
+	return model
+
 
 corpora = utilidades.Corpora()
 util = utilidades.Util()
 
-path_harem_gensim = 'pytorch_lstmcrf/data/harem_seg/harem_gensim_format.txt'
-path_geo_gensim = 'pytorch_lstmcrf/data/geocorpus/geocorpus_gensim_format.txt'
-path_lener_gensim = 'pytorch_lstmcrf/data/lener_br/lener_gensim_format.txt'
-path_cojur_gensim = 'pytorch_lstmcrf/data/cojur/cojur_gensim_format.txt'
+def main():
 
-path_harem_to_geo = 'pytorch_lstmcrf/data/geocorpus/harem_to_gensim_format.txt'
-path_geo_gensim_aproximado = 'pytorch_lstmcrf/data/geocorpus/geocorpus_gensim_format_aproximado.txt'
+	parser = argparse.ArgumentParser(description="")
+	opt = parse_arguments(parser)
 
-# harem_embeddings = corpora.load_dataset_embeddings(all_embeddings,path_harem,100)
-# target_embeddings = corpora.load_dataset_embeddings(all_embeddings,path_,100)
+	print('Carregando os Datasets')
 
-print('calculando as divergencias')
+	full_data_source = opt.data_path+'/'+opt.fonte+'/full_data.txt'
+	full_data_target = opt.data_path+'/'+opt.alvo+'/full_data.txt'
 
-print('KL - carregando glove embeddings pelo gensim')
+	if opt.contextual == 'no':
 
-kv_harem = KeyedVectors.load_word2vec_format(path_harem_gensim)
-kv_geo = KeyedVectors.load_word2vec_format(path_geo_gensim)
+		if opt.originais == 'yes':
 
-kv_harem_aproximado = KeyedVectors.load_word2vec_format(path_harem_to_geo)
-kv_geo_aproximado = KeyedVectors.load_word2vec_format(path_geo_gensim_aproximado)
+			all_keys = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_originais/glove_s100.txt')
 
-print('Divergência para os datasets originais')
-kl,js = util.divergencia_KL(kv_harem,kv_geo)
-centr = util.centroid_diff(kv_harem,kv_geo)
-print('KL: ' + str(kl))
-print('JS: ' + str(js))
-print('Centroide: ' + str(centr))
+			keys_source = create_keywords_for_corpus(all_keys,full_data_source)
+			keys_target = create_keywords_for_corpus(all_keys,full_data_target)
 
-print()
+		else:
+			dim = opt.dim_aprox
+			#no aproximado a fonte sempre eh o harem, entao basta testar o alvo
+			if opt.fonte != 'harem':
+				print('o conjunto fonte deve ser o harem')
+				return
+			else:
+				all_keys_fonte = KeyedVectors.load_word2vec_format(
+				opt.data_path+
+				'/embeddings_aproximados/nao_contextuais/'
+				 +str(dim)+'/harem_to_'+opt.alvo+'_'+str(dim)+'.txt')
 
-print('Divergências para os datasets aproximados')
-kl,js = util.divergencia_KL(kv_harem_aproximado,kv_geo_aproximado)
-centr = util.centroid_diff(kv_harem_aproximado,kv_geo_aproximado)
-print('KL: ' + str(kl))
-print('JS: ' + str(js))
-print('Centroide: ' + str(centr))
+				all_keys_alvo = KeyedVectors.load_word2vec_format(
+				opt.data_path+
+				'/embeddings_aproximados/nao_contextuais/'
+				 +str(dim)+'/pc_'+opt.alvo+'_'+str(dim)+'.txt')
+
+			keys_source = create_keywords_for_corpus(all_keys_fonte,full_data_source)
+			keys_target = create_keywords_for_corpus(all_keys_alvo,full_data_target)
+	else:
+
+		if opt.originais == 'yes':
+
+			if opt.fonte == 'harem':
+				all_keys_fonte = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/harem_embeddings_100d.txt')
+			elif opt.fonte == 'geocorpus':
+				all_keys_fonte = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/geocorpus_embeddings_100d.txt')
+			elif opt.fonte == 'lener':
+				all_keys_fonte = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/lener_embeddings_100d.txt')
+			elif opt.fonte == 'cojur':
+				all_keys_fonte = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/cojur_embeddings_100d.txt')
+
+			if opt.alvo == 'harem':
+				all_keys_alvo = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/harem_embeddings_100d.txt')
+			elif opt.alvo == 'geocorpus':
+				all_keys_alvo = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/geocorpus_embeddings_100d.txt')
+			elif opt.alvo == 'lener':
+				all_keys_alvo = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/lener_embeddings_100d.txt')
+			elif opt.alvo == 'cojur':
+				all_keys_alvo = KeyedVectors.load_word2vec_format(
+				opt.data_path+'/embeddings_contextuais/cojur_embeddings_100d.txt')
+
+			keys_source = create_keywords_for_corpus(all_keys_fonte,full_data_source)
+			keys_target = create_keywords_for_corpus(all_keys_alvo,full_data_target)
+		else:
+			pass
+
+	print('Calculando as Divergências:')
+	kl,js = util.divergencia_KL(keys_source,keys_target)
+	centr = util.centroid_diff(keys_source,keys_target)
+	print('KL: ' + str(kl))
+	print('JS: ' + str(js))
+	print('Centroide: ' + str(centr))
+
+
+if __name__ == "__main__":
+    main()
