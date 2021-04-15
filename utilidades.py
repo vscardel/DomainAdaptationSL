@@ -214,35 +214,12 @@ class Corpora:
 		corpus_embedding_dict = {}
 		corpus_dict = self.conta_palavras(corpus_path)
 		for palavra in corpus_dict:
-			if palavra in embeddings_dict:
-				corpus_embedding_dict[palavra] = embeddings_dict[palavra]
-			else:
-				corpus_embedding_dict[palavra] = np.random.rand(embedding_dim)
+			#descarta palavras que nao estao no vocabulario
+			if palavra.lower() in embeddings_dict:
+				corpus_embedding_dict[palavra.lower()] = embeddings_dict[palavra]
+			# else:
+			# 	corpus_embedding_dict[palavra.lower()] = np.random.rand(embedding_dim)
 		return corpus_embedding_dict
-
-
-	def write_on_gensim_format(self,path_corpora,path_embeddings,path_new_file,dim):
-		f = open(path_new_file,'w')
-		print('carregando modelo gensim')
-		model_all_embeddings = KeyedVectors.load_word2vec_format(path_embeddings)
-		palavras_corpora = self.conta_palavras(path_corpora)
-		cont = 0
-		print('escrevendo embeddings')
-		f.write(str(len(palavras_corpora)) + ' ' + str(dim) + '\n')
-		for palavra in palavras_corpora:
-			if palavra in model_all_embeddings:
-				embedding = model_all_embeddings[palavra]
-			else:
-				cont = cont + 1
-				embedding = np.random.rand(dim)
-
-			f.write(palavra + ' ')
-			for i,num in enumerate(embedding):
-				if i == len(embedding)-1:
-					f.write(str(num) + '\n')
-				else:
-					f.write(str(num) + ' ')
-		print('palavras inicializadas aleatoriamente: ' + str(cont))
 
 class Util:
 

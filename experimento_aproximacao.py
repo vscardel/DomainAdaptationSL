@@ -19,6 +19,32 @@ def parse_arguments(parser):
 		print(k + ": " + str(args.__dict__[k]))
 	return args
 
+#para converter as matrizes obtidas pelo metodo de aproximacao
+#em dicionarios palavra->vetor
+#shape(M) = dim X num_embeddings_corpus
+def convert_matrix_to_dict(dict_corpus,M):
+	cont = 0
+	new_dict = {}
+	for palavra in dict_corpus: 
+		new_dict[palavra] = M[:,cont]
+		cont = cont + 1
+	return new_dict
+
+def convert_to_gensim(dict_corpus):
+	for i,palavra in enumerate(dict_corpus):
+		if i == 0:
+			model = KeyedVectors(len(dict_corpus[palavra]))
+		model.add_vector(palavra,dict_corpus[palavra])
+	return model
+
+#source e target no formato gensim
+def calcula_devergencias(source,target,util):
+	kl,js = util.divergencia_KL(source,target)
+	centr = util.centroid_diff(source,target)
+	print('KL: ' + str(kl))
+	print('JS: ' + str(js))
+	print('Centroide: ' + str(centr))
+
 
 def build_matrix_observartions(dict_emb,emb_dim):
 	X = np.zeros([emb_dim,len(dict_emb)])
@@ -68,16 +94,19 @@ def write_embeddings_to_file(path,corpus_dict,all_dict,emb_to_write,d_eig_corpus
 	cont = 0
 	dim = len(emb_to_write[:,0])
 
+	for palavra in corpus_dict:
+		emb = emb_to_write[:,cont]
+		cont = cont + 1
+		dict_to_write[palavra] = emb
+
+	print(cont,len(corpus_dict))
+
 	for palavra in all_dict:
 		if palavra not in corpus_dict:
 			#reduce dimensionality of the vector
 			emb = np.matmul(all_dict[palavra],d_eig_corpus)
 			dict_to_write[palavra] = emb
-		else:
-			emb = emb_to_write[:,cont]
-			cont = cont + 1
-			dict_to_write[palavra] = emb
-
+		
 	#numero de linhas e dimensao dos embeddings
 	f.write(str(len(dict_to_write)-1) + ' ' + str(dim) + '\n')
 
@@ -88,15 +117,17 @@ def write_embeddings_to_file(path,corpus_dict,all_dict,emb_to_write,d_eig_corpus
 			emb = dict_to_write[palavra]
 			for i,num in enumerate(emb):
 				if i == len(emb)-1:
-					f.write(str(round(num,6)) + '\n')
+					f.write(str(num) + '\n')
 				else:
-					f.write(str(round(num,6)) + ' ')
+					f.write(str(num) + ' ')
 
 
 def main():
 
 	parser = argparse.ArgumentParser(description="")
 	opt = parse_arguments(parser)
+
+	util = utilidades.Util()
 
 	dim = 100
 	
@@ -113,17 +144,35 @@ def main():
 		lener_embeddings = utilidades.Corpora().load_dataset_embeddings(all_embeddings,opt.data_path+'/lener/full_data.txt',dim)
 		cojur_embeddings = utilidades.Corpora().load_dataset_embeddings(all_embeddings,opt.data_path+'/cojur/full_data.txt',dim)
 
-	elif opt.contextual == 'yes': 
+		print('convertendo os embeddings origniais para o formato gensim')
 
-		all_harem_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/harem_embeddings_100d.txt')
-		all_geo_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/geocorpus_embeddings_100d.txt')
-		all_lener_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/lener_embeddings_100d.txt')
-		all_cojur_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/cojur_embeddings_100d.txt')
+		harem_embeddings_gensim = convert_to_gensim(harem_embeddings)
+		geocorpus_embeddings_gensim = convert_to_gensim(geocorpus_embeddings)
+		lener_embeddings_gensim = convert_to_gensim(lener_embeddings)
+		cojur_embeddings_gensim = convert_to_gensim(cojur_embeddings)
 
-		harem_embeddings = utilidades.Corpora().load_dataset_embeddings(all_harem_embeddings,opt.data_path+'/harem/full_data.txt',dim)
-		geocorpus_embeddings = utilidades.Corpora().load_dataset_embeddings(all_geo_embeddings,opt.data_path+'/geocorpus/full_data.txt',dim)
-		lener_embeddings = utilidades.Corpora().load_dataset_embeddings(all_lener_embeddings,opt.data_path+'/lener/full_data.txt',dim)
-		cojur_embeddings = utilidades.Corpora().load_dataset_embeddings(all_cojur_embeddings,opt.data_path+'/cojur/full_data.txt',dim)
+		# print('calculando divergencia dos embeddings originais')
+
+		# print('harem/geo')
+		# calcula_devergencias(harem_embeddings_gensim,geocorpus_embeddings_gensim,util)
+
+		# print('harem/lener')
+		# calcula_devergencias(harem_embeddings_gensim,lener_embeddings_gensim,util)
+
+		# print('harem/cojur')
+		# calcula_devergencias(harem_embeddings_gensim,cojur_embeddings_gensim,util)
+
+	# elif opt.contextual == 'yes': 
+
+	# 	all_harem_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/harem_embeddings_100d.txt')
+	# 	all_geo_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/geocorpus_embeddings_100d.txt')
+	# 	all_lener_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/lener_embeddings_100d.txt')
+	# 	all_cojur_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/cojur_embeddings_100d.txt')
+
+	# 	harem_embeddings = utilidades.Corpora().load_dataset_embeddings(all_harem_embeddings,opt.data_path+'/harem/full_data.txt',dim)
+	# 	geocorpus_embeddings = utilidades.Corpora().load_dataset_embeddings(all_geo_embeddings,opt.data_path+'/geocorpus/full_data.txt',dim)
+	# 	lener_embeddings = utilidades.Corpora().load_dataset_embeddings(all_lener_embeddings,opt.data_path+'/lener/full_data.txt',dim)
+	# 	cojur_embeddings = utilidades.Corpora().load_dataset_embeddings(all_cojur_embeddings,opt.data_path+'/cojur/full_data.txt',dim)
 
 	else:
 		print('valor invalido para o argumento contextual')
@@ -171,19 +220,51 @@ def main():
 	print('computando componentes principais')
 	#os componentes do harem serao alinhados com o corpus alvo
 	pc_harem = compute_principal_components(harem_embeddings,d_eig_harem,d)
+	dict_pc_harem = convert_matrix_to_dict(harem_embeddings,pc_harem)
 	pc_geocorpus = compute_principal_components(geocorpus_embeddings,d_eig_geo,d)
+	dict_pc_geocorpus = convert_matrix_to_dict(geocorpus_embeddings,pc_geocorpus)
 	pc_lener = compute_principal_components(lener_embeddings,d_eig_lener,d)
+	dict_pc_lener = convert_matrix_to_dict(lener_embeddings,pc_lener)
 	pc_cojur = compute_principal_components(cojur_embeddings,d_eig_cojur,d)
+	dict_pc_cojur = convert_matrix_to_dict(cojur_embeddings,pc_cojur)
+
 
 
 	print('###################')
 	print('alinhando corporas')
 	print('harem -> geocorpus')
 	emb_harem_geo = align_corporas(pc_harem,d_eig_harem,d_eig_geo)
+	dict_harem_to_geo = convert_matrix_to_dict(harem_embeddings,emb_harem_geo)
 	print('harem -> lener')
 	emb_harem_lener = align_corporas(pc_harem,d_eig_harem,d_eig_lener)
+	dict_harem_to_lener = convert_matrix_to_dict(harem_embeddings,emb_harem_lener)
 	print('harem -> cojur')
 	emb_harem_cojur = align_corporas(pc_harem,d_eig_harem,d_eig_cojur)
+	dict_harem_to_cojur = convert_matrix_to_dict(harem_embeddings,emb_harem_cojur)
+
+	print('Computando Divergências dos embeddings aproximados')
+
+	emb_harem_geo_gensim = convert_to_gensim(dict_harem_to_geo)
+	emb_harem_lener_gensim = convert_to_gensim(dict_harem_to_lener)
+	emb_harem_cojur_gensim = convert_to_gensim(dict_harem_to_cojur)
+
+	pc_geocorpus_gensim = convert_to_gensim(dict_pc_geocorpus)
+	pc_lener_gensim = convert_to_gensim(dict_pc_lener)
+	pc_cojur_gensim = convert_to_gensim(dict_pc_cojur)
+
+	print(len(harem_embeddings),len(geocorpus_embeddings))
+	print(len(emb_harem_geo_gensim),len(pc_geocorpus_gensim))
+
+	print('harem -> geo')
+	calcula_devergencias(emb_harem_geo_gensim,pc_geocorpus_gensim,util)
+
+	print('harem -> lener')
+	calcula_devergencias(emb_harem_lener_gensim,pc_lener_gensim,util)
+
+	print('harem -> cojur')
+	calcula_devergencias(emb_harem_cojur_gensim,pc_cojur_gensim,util)
+
+	return
 
 	print('###################')
 	print('escrevendo embeddings para os arquivos')
