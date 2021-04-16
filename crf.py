@@ -1,4 +1,4 @@
-#para usar apenas o lstm sem o crf
+#para usar apenas o crf sem o lstm
 from itertools import chain
 import nltk
 import sklearn
@@ -25,6 +25,9 @@ def parse_arguments(parser):
 			help="diretorio para salvar o modelo")
 	parser.add_argument('--saved_model', type=str, default="",
 			help="diretorio para salvar o modelo")
+	parser.add_argument('--path_results', type=str, default="",
+			help="caminho do diretório dos resultados")
+
 
 	
 	args = parser.parse_args()
@@ -71,12 +74,19 @@ def batch2features(batch,contextual_features):
 def batch2labels(batch):
 	return [label for token,label in batch]
 
+def write_results(path_results,dataset,results):
+	f = open(path_results,'r')
+	for i,batch in enumerate(dataset):
+		results_batch = results[i]
+		print(len(results_batch))
+		print(len(batch))
 
 def main():
 
 	parser = argparse.ArgumentParser(description="")
 	opt = parse_arguments(parser)
 	corpora = utilidades.Corpora()
+
 	contextual_features = corpora.load_embeddings(opt.data_path +
 									'/embeddings_contextuais/' +
 									opt.corpus + '_embeddings_100d.txt')
@@ -86,7 +96,7 @@ def main():
 
 		X_train = [batch2features(b,contextual_features) for b in dataset if b]
 		y_train = [batch2labels(b) for b in dataset if b]
-
+		
 
 		crf = sklearn_crfsuite.CRF(
 			algorithm='lbfgs',
@@ -114,6 +124,9 @@ def main():
 
 		print(metrics.flat_f1_score(y_test, y_pred,
                       average='weighted', labels=labels))
+
+		print('escrevendo resultados')
+		write_results(opt.path_results,dataset_test,y_pred)
 
 if __name__ == "__main__":
     main()
