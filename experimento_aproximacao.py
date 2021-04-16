@@ -12,6 +12,8 @@ def parse_arguments(parser):
 				help="dimensao do subespaço aproximado")
 	parser.add_argument('--contextual', type=str, default="",
 				help="para saber se eh aproximacao dos embeddings contextuais")
+	parser.add_argument('--original', type=str, default="",
+				help="para saber se eh para fornecer a div dos originais")
 
 
 	args = parser.parse_args()
@@ -99,8 +101,6 @@ def write_embeddings_to_file(path,corpus_dict,all_dict,emb_to_write,d_eig_corpus
 		cont = cont + 1
 		dict_to_write[palavra] = emb
 
-	print(cont,len(corpus_dict))
-
 	for palavra in all_dict:
 		if palavra not in corpus_dict:
 			#reduce dimensionality of the vector
@@ -144,6 +144,35 @@ def main():
 		lener_embeddings = utilidades.Corpora().load_dataset_embeddings(all_embeddings,opt.data_path+'/lener/full_data.txt',dim)
 		cojur_embeddings = utilidades.Corpora().load_dataset_embeddings(all_embeddings,opt.data_path+'/cojur/full_data.txt',dim)
 
+		print(len(harem_embeddings))
+		print(len(geocorpus_embeddings))
+		print(len(lener_embeddings))
+		print(len(cojur_embeddings))
+
+
+	elif opt.contextual == 'yes': 
+
+		all_harem_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/harem_embeddings_100d.txt')
+		all_geo_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/geocorpus_embeddings_100d.txt')
+		all_lener_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/lener_embeddings_100d.txt')
+		all_cojur_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/cojur_embeddings_100d.txt')
+
+		harem_embeddings = utilidades.Corpora().load_dataset_embeddings(all_harem_embeddings,opt.data_path+'/harem/full_data.txt',dim)
+		geocorpus_embeddings = utilidades.Corpora().load_dataset_embeddings(all_geo_embeddings,opt.data_path+'/geocorpus/full_data.txt',dim)
+		lener_embeddings = utilidades.Corpora().load_dataset_embeddings(all_lener_embeddings,opt.data_path+'/lener/full_data.txt',dim)
+		cojur_embeddings = utilidades.Corpora().load_dataset_embeddings(all_cojur_embeddings,opt.data_path+'/cojur/full_data.txt',dim)
+
+		print(len(harem_embeddings))
+		print(len(geocorpus_embeddings))
+		print(len(lener_embeddings))
+		print(len(cojur_embeddings))
+
+	else:
+		print('valor invalido para o argumento contextual')
+		return
+
+	if opt.original == 'yes':
+
 		print('convertendo os embeddings origniais para o formato gensim')
 
 		harem_embeddings_gensim = convert_to_gensim(harem_embeddings)
@@ -151,33 +180,21 @@ def main():
 		lener_embeddings_gensim = convert_to_gensim(lener_embeddings)
 		cojur_embeddings_gensim = convert_to_gensim(cojur_embeddings)
 
-		# print('calculando divergencia dos embeddings originais')
+		print(len(harem_embeddings_gensim))
+		print(len(geocorpus_embeddings_gensim))
+		print(len(lener_embeddings_gensim))
+		print(len(cojur_embeddings_gensim))
 
-		# print('harem/geo')
-		# calcula_devergencias(harem_embeddings_gensim,geocorpus_embeddings_gensim,util)
+		print('calculando divergencia dos embeddings originais')
 
-		# print('harem/lener')
-		# calcula_devergencias(harem_embeddings_gensim,lener_embeddings_gensim,util)
+		print('harem/geo')
+		calcula_devergencias(harem_embeddings_gensim,geocorpus_embeddings_gensim,util)
 
-		# print('harem/cojur')
-		# calcula_devergencias(harem_embeddings_gensim,cojur_embeddings_gensim,util)
+		print('harem/lener')
+		calcula_devergencias(harem_embeddings_gensim,lener_embeddings_gensim,util)
 
-	# elif opt.contextual == 'yes': 
-
-	# 	all_harem_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/harem_embeddings_100d.txt')
-	# 	all_geo_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/geocorpus_embeddings_100d.txt')
-	# 	all_lener_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/lener_embeddings_100d.txt')
-	# 	all_cojur_embeddings = utilidades.Corpora().load_embeddings(opt.data_path + '/embeddings_contextuais/cojur_embeddings_100d.txt')
-
-	# 	harem_embeddings = utilidades.Corpora().load_dataset_embeddings(all_harem_embeddings,opt.data_path+'/harem/full_data.txt',dim)
-	# 	geocorpus_embeddings = utilidades.Corpora().load_dataset_embeddings(all_geo_embeddings,opt.data_path+'/geocorpus/full_data.txt',dim)
-	# 	lener_embeddings = utilidades.Corpora().load_dataset_embeddings(all_lener_embeddings,opt.data_path+'/lener/full_data.txt',dim)
-	# 	cojur_embeddings = utilidades.Corpora().load_dataset_embeddings(all_cojur_embeddings,opt.data_path+'/cojur/full_data.txt',dim)
-
-	else:
-		print('valor invalido para o argumento contextual')
-		return
-
+		print('harem/cojur')
+		calcula_devergencias(harem_embeddings_gensim,cojur_embeddings_gensim,util)
 
 	print('###################')
 	print('construindo matrizes de observacao')
@@ -252,8 +269,13 @@ def main():
 	pc_lener_gensim = convert_to_gensim(dict_pc_lener)
 	pc_cojur_gensim = convert_to_gensim(dict_pc_cojur)
 
-	print(len(harem_embeddings),len(geocorpus_embeddings))
-	print(len(emb_harem_geo_gensim),len(pc_geocorpus_gensim))
+	print(len(emb_harem_geo_gensim))
+	print(len(emb_harem_lener_gensim))
+	print(len(emb_harem_cojur_gensim))
+
+	print(len(pc_geocorpus_gensim))
+	print(len(pc_lener_gensim))
+	print(len(pc_cojur_gensim))
 
 	print('harem -> geo')
 	calcula_devergencias(emb_harem_geo_gensim,pc_geocorpus_gensim,util)

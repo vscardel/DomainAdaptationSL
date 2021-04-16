@@ -185,7 +185,7 @@ class Corpora:
 		lines = f.readlines()
 		for line in lines:
 			palavra = line.split(' ')[0]
-			if palavra not in cont_palavras:
+			if palavra.lower() not in cont_palavras:
 				cont_palavras[palavra.lower()] = 1
 			else:
 				cont_palavras[palavra.lower()] += 1
@@ -200,7 +200,7 @@ class Corpora:
 				split_line = line.split()
 				word = split_line[0]
 				embedding = split_line[1:]
-				if word not in embedding_dict:
+				if word.lower() not in embedding_dict:
 					try:
 						embedding_dict[word.lower()] = np.array(embedding).astype(np.float)
 					except:
@@ -274,7 +274,7 @@ class Util:
 		union = list(set(list_palavra_source+list_palavra_target))
 
 		num_sample = 10
-		cont_outside = 0
+		cont_outside_source,cont_outside_target = 0,0
 
 		for i,palavra in enumerate(union):
 
@@ -306,7 +306,7 @@ class Util:
 					if curr_similarity_with_word_source >= distancia_media_source:
 						cont_s += 1
 				else:
-					cont_outside += 1
+					cont_outside_source += 1
 					break
 
 				if most_similar_target:
@@ -316,7 +316,7 @@ class Util:
 					if curr_similarity_with_word_target >= distancia_media_target:
 						cont_t += 1
 				else:
-					cont_outside += 1
+					cont_outside_target += 1
 					break
 
 			p_source = cont_s/num_sample
@@ -329,9 +329,11 @@ class Util:
 			# 	print(str(round(i/len(union)*100)) + ' % ' + 'completo')
 			# 	# print(spatial.distance.cosine(emb,dict_s[amostra_s[j]]))
 
-		p_outside = cont_outside/len(union)
-		p_distribution_target = np.append(p_distribution_target,p_outside)
-		p_distribution_source = np.append(p_distribution_source,p_outside)
+		p_outside_source = cont_outside_source/len(glove_model_source)
+		p_outside_target = cont_outside_target/len(glove_model_target)
+
+		p_distribution_target = np.append(p_distribution_target,p_outside_target)
+		p_distribution_source = np.append(p_distribution_source,p_outside_source)
 
 		#kl pura
 		kl = stats.entropy(p_distribution_target,p_distribution_source)
