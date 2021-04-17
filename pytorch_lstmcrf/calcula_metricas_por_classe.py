@@ -122,8 +122,7 @@ for cont,classe in enumerate(mapp):
 
 	if classe != 'ABSTRACAO':
 
-		print('classe: '+ classe)
-
+		print(classe)
 		matrizes = mapp[classe]
 		m_aux = sum_matrix(matrizes['B'],matrizes['I'])
 		MC = sum_matrix(m_aux,matrizes['O'])

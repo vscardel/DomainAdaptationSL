@@ -27,6 +27,8 @@ def parse_arguments(parser):
 			help="diretorio para salvar o modelo")
 	parser.add_argument('--path_results', type=str, default="",
 			help="caminho do diretório dos resultados")
+	parser.add_argument('--dev', type=str, default="",
+			help="aplicar arquivo de dev ou teste")
 
 
 	
@@ -48,7 +50,8 @@ def load_dataset(file_path):
 			l = tuple(line.strip().split(' '))
 			current_batch.append(l)
 	#ultimo batch
-	dataset.append(current_batch)
+	if current_batch:
+		dataset.append(current_batch)
 	return dataset
 
 def word2features(batch,i,contextual_features):
@@ -75,11 +78,16 @@ def batch2labels(batch):
 	return [label for token,label in batch]
 
 def write_results(path_results,dataset,results):
-	f = open(path_results,'r')
+	f = open(path_results,'w')
 	for i,batch in enumerate(dataset):
 		results_batch = results[i]
-		print(len(results_batch))
-		print(len(batch))
+		for j in range(len(batch)):
+			palavra = batch[j][0]
+			label = results_batch[j]
+			f.write(palavra + ' ' + label + '\n')
+		f.write('\n')
+
+		
 
 def main():
 
@@ -113,7 +121,10 @@ def main():
 
 	elif opt.test == 'yes':
 
-		dataset_test = load_dataset(opt.data_path+'/'+opt.corpus+'/test.txt')
+		if opt.dev == 'yes':
+			dataset_test = load_dataset(opt.data_path+'/'+opt.corpus+'/dev.txt')
+		else:
+			dataset_test = load_dataset(opt.data_path+'/'+opt.corpus+'/test.txt')
 
 		X_test = [batch2features(b,contextual_features) for b in dataset_test if b]
 		y_test = [batch2labels(b) for b in dataset_test if b]
@@ -126,6 +137,7 @@ def main():
                       average='weighted', labels=labels))
 
 		print('escrevendo resultados')
+		print(len(dataset_test),len(y_pred))
 		write_results(opt.path_results,dataset_test,y_pred)
 
 if __name__ == "__main__":
