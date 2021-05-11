@@ -90,7 +90,7 @@ def write_contextual_embeddings(f,words,context_rep,written_words):
 parser = argparse.ArgumentParser(description="LSTM CRF implementation")
 opt = parse_arguments(parser)
 
-dataset = opt.model_path.split('/')[2].split('_')[0]
+dataset = opt.dataset
 # print(dataset)
 
 #apenas para criar as labels
@@ -157,16 +157,16 @@ with torch.no_grad():
 
 		batch_id += 1
 
-		batch_max_scores, batch_max_ids,context_rep = model.decode(words = batch.words.to(dev), word_seq_lens = batch.word_seq_len.to(dev),
+		batch_max_scores, batch_max_ids = model.decode(words = batch.words.to(dev), word_seq_lens = batch.word_seq_len.to(dev),
 		context_emb=batch.context_emb.to(dev) if batch.context_emb is not None else None,
 		chars = batch.chars.to(dev), char_seq_lens = batch.char_seq_lens.to(dev))
 		
-		batch_p , batch_predict, batch_total = evaluate_batch_insts(one_batch_insts,batch_max_ids, batch.labels, batch.word_seq_len, idx2labels)
+		batch_p , batch_predict, batch_total = evaluate_batch_insts(one_batch_insts,f,batch_max_ids, batch.labels, batch.word_seq_len, idx2labels)
 		p_dict += batch_p
 		total_predict_dict += batch_predict
 		total_entity_dict += batch_total
 
-		write_contextual_embeddings(f2,words_batch,context_rep,written_words)
+		# write_contextual_embeddings(f2,words_batch,context_rep,written_words)
 
 
 total_p = sum(list(p_dict.values()))

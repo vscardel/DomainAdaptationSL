@@ -52,9 +52,15 @@ def build_matrix_observartions(dict_emb,emb_dim):
 	X = np.zeros([emb_dim,len(dict_emb)])
 	
 	for i,word in enumerate(dict_emb):
+
 		if len(dict_emb[word]) == emb_dim:
 			X[:,i] = dict_emb[word]
-	return X
+
+	#normalize matrix of observations
+	mean_vector = X.mean(1)
+	mean_matrix = np.tile(np.array([mean_vector]).transpose(), (1, len(dict_emb)))
+	normalized_observations = X - mean_matrix
+	return normalized_observations
 
 def plot_log_scale(values):
 	plt.figure(1)
@@ -218,7 +224,7 @@ def main():
 	U_cojur,S_cojur,W_cojur = np.linalg.svd(cov_alfa)
 
 
-	# print('plotando autovalores em escalar logaritmica')
+	# print('plotando autovalores em escala logaritmica')
 	# plot_log_scale(S_cojur)
 
 	# unico hiperparametro do metodo
@@ -286,8 +292,6 @@ def main():
 	print('harem -> cojur')
 	calcula_devergencias(emb_harem_cojur_gensim,pc_cojur_gensim,util)
 
-	return
-
 	print('###################')
 	print('escrevendo embeddings para os arquivos')
 
@@ -296,42 +300,42 @@ def main():
 		print('file harem_to_geocorpus')
 
 		write_embeddings_to_file(opt.data_path+
-			'/embeddings_aproximados/contextuais/'+str(d)+'/'+
+			'/embeddings_aproximados_normalizados/contextuais/'+str(d)+'/'+
 			'harem_to_geocorpus_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_geo,d_eig_harem)
 
 		print('file harem_to_lener')
 
 		write_embeddings_to_file(opt.data_path+
-			'/embeddings_aproximados/contextuais/'+str(d)+'/'+
+			'/embeddings_aproximados_normalizados/contextuais/'+str(d)+'/'+
 			'harem_to_lener_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_lener,d_eig_harem)
 
 		print('file harem_to_cojur')
 
 		write_embeddings_to_file(opt.data_path+
-			'/embeddings_aproximados/contextuais/'+str(d)+'/'+
+			'/embeddings_aproximados_normalizados/contextuais/'+str(d)+'/'+
 			'harem_to_cojur_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_cojur,d_eig_harem)
 
 		print('file pc_geocorpus')
 
 		write_embeddings_to_file(opt.data_path+
-				'/embeddings_aproximados/contextuais/'+str(d)+'/'+
+				'/embeddings_aproximados_normalizados/contextuais/'+str(d)+'/'+
 				'pc_geocorpus_'+str(d)+
 				'.txt',geocorpus_embeddings,all_embeddings,pc_geocorpus,d_eig_geo)
 
 		print('file pc_lener')
 
 		write_embeddings_to_file(opt.data_path+
-				'/embeddings_aproximados/contextuais/'+str(d)+'/'
+				'/embeddings_aproximados_normalizados/contextuais/'+str(d)+'/'
 				'pc_lener_'+str(d)+
 				'.txt',lener_embeddings,all_embeddings,pc_lener,d_eig_lener)
 
 		print('file pc_cojur')
 
 		write_embeddings_to_file(opt.data_path+
-				'/embeddings_aproximados/contextuais/'+str(d)+'/'
+				'/embeddings_aproximados_normalizados/contextuais/'+str(d)+'/'
 				'pc_cojur_'+str(d)+
 				'.txt',cojur_embeddings,all_embeddings,pc_cojur,d_eig_cojur)
 	else:
@@ -339,42 +343,42 @@ def main():
 		print('file harem_to_geocorpus')
 
 		write_embeddings_to_file(opt.data_path+
-			'/embeddings_aproximados/nao_contextuais/'+str(d)+'/'
+			'/embeddings_aproximados_normalizados/nao_contextuais/'+str(d)+'/'
 			'harem_to_geocorpus_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_geo,d_eig_harem)
 
 		print('file harem_to_lener')
 
 		write_embeddings_to_file(opt.data_path+
-			'/embeddings_aproximados/nao_contextuais/'+str(d)+'/'
+			'/embeddings_aproximados_normalizados/nao_contextuais/'+str(d)+'/'
 			'harem_to_lener_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_lener,d_eig_harem)
 
 		print('file harem_to_cojur')
 
 		write_embeddings_to_file(opt.data_path+
-			'/embeddings_aproximados/nao_contextuais/'+str(d)+'/'
+			'/embeddings_aproximados_normalizados/nao_contextuais/'+str(d)+'/'
 			'harem_to_cojur_'+str(d)+
 			'.txt',harem_embeddings,all_embeddings,emb_harem_cojur,d_eig_harem)
 
 		print('file pc_geocorpus')
 
 		write_embeddings_to_file(opt.data_path+
-				'/embeddings_aproximados/nao_contextuais/'+str(d)+'/'
+				'/embeddings_aproximados_normalizados/nao_contextuais/'+str(d)+'/'
 				'pc_geocorpus_'+str(d)+
 				'.txt',geocorpus_embeddings,all_embeddings,pc_geocorpus,d_eig_geo)
 
 		print('file pc_lener')
 
 		write_embeddings_to_file(opt.data_path+
-				'/embeddings_aproximados/nao_contextuais/'+str(d)+'/'
+				'/embeddings_aproximados_normalizados/nao_contextuais/'+str(d)+'/'
 				'pc_lener_'+str(d)+
 				'.txt',lener_embeddings,all_embeddings,pc_lener,d_eig_lener)
 
 		print('file pc_cojur')
 
 		write_embeddings_to_file(opt.data_path+
-				'/embeddings_aproximados/nao_contextuais/'+str(d)+'/'
+				'/embeddings_aproximados_normalizados/nao_contextuais/'+str(d)+'/'
 				'pc_cojur_'+str(d)+
 				'.txt',cojur_embeddings,all_embeddings,pc_cojur,d_eig_cojur)
 

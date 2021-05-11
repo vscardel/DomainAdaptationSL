@@ -75,9 +75,9 @@ class NNCRF(nn.Module):
         """
         
         word_rep = self.embedder(words, word_seq_lens, context_emb, chars, char_seq_lens)
-        features,context_rep = self.encoder(word_rep, word_seq_lens.cpu())
-        # features = self.encoder(word_rep, word_seq_lens.cpu())
+        # features,context_rep = self.encoder(word_rep, word_seq_lens.cpu())
+        features = self.encoder(word_rep, word_seq_lens.cpu())
         bestScores, decodeIdx = self.inferencer.decode(features, word_seq_lens)
-        return bestScores, decodeIdx,context_rep
-        # return bestScores, decodeIdx
+        # return bestScores, decodeIdx,context_rep
+        return bestScores, decodeIdx
 

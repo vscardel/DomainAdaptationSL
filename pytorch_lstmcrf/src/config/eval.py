@@ -6,11 +6,18 @@ from src.data import Instance
 
 #victor
 def write_results(f,words,tags):
+	previous_tag = ''
 	for i in range(len(words)):
 		if tags[i] == 'E-':
 			tags[i] = 'I-'
-		elif tags[i] == 'S-':
+		elif tags[i] == 'S-' or tags[i] == '<START>':
 			tags[i] = 'B-'
+
+		#garante q n aceite transacoes invalidas
+		if tags[i] == 'I-':
+			if previous_tag == 'O':
+				tags[i] = 'B-'
+		previous_tag = tags[i]
 		f.write(words[i] + ' ' + tags[i] + '\n')
 
 
@@ -38,6 +45,7 @@ class Span:
 
 
 def evaluate_batch_insts(batch_insts: List[Instance],
+                         f_obj,
                          batch_pred_ids: torch.Tensor,
                          batch_gold_ids: torch.Tensor,
                          word_seq_lens: torch.Tensor,
@@ -66,8 +74,8 @@ def evaluate_batch_insts(batch_insts: List[Instance],
        
         prediction =[idx2label[l] for l in prediction]
 
-        # write_results(f_obj,batch_insts[0].words,prediction)
-        # f_obj.write('\n')
+        write_results(f_obj,batch_insts[0].words,prediction)
+        f_obj.write('\n')
 
         batch_insts[idx].prediction = prediction
         #convert to span

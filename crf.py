@@ -29,6 +29,8 @@ def parse_arguments(parser):
 			help="caminho do diretório dos resultados")
 	parser.add_argument('--dev', type=str, default="",
 			help="aplicar arquivo de dev ou teste")
+	parser.add_argument('--contextual_features', type=str, default="",
+			help="caminho para as features a serem utilizadas")
 
 
 	
@@ -95,9 +97,8 @@ def main():
 	opt = parse_arguments(parser)
 	corpora = utilidades.Corpora()
 
-	contextual_features = corpora.load_embeddings(opt.data_path +
-									'/embeddings_contextuais/' +
-									opt.corpus + '_embeddings_100d.txt')
+	contextual_features = corpora.load_embeddings(opt.data_path + '/' + opt.contextual_features)
+
 	if opt.train == 'yes':
 
 		dataset = load_dataset(opt.data_path+'/'+opt.corpus+'/train.txt')
